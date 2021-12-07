@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-	
+
 #include "XModem.h"
 #ifdef UTEST
 #include "CppUTestExt/MockSupport.h"
@@ -23,15 +23,17 @@ XModem::XModem(int (*recvChar)(int msDelay), void (*sendChar)(char sym))
 	this->sendChar = sendChar;
 	this->recvChar = recvChar;
 	this->dataHandler = NULL;
-	
+
 }
-XModem::XModem(int (*recvChar)(int msDelay), void (*sendChar)(char sym), 
-		bool (*dataHandler)(unsigned long number, char *buffer, int len))
+XModem::XModem(int (*recvChar)(int msDelay), void (*sendChar)(char sym),
+		bool (*rDataHandler)(unsigned long number, char *buffer, int len),
+		bool (*tDataHandler)(unsigned long number, char *buffer, int len)
+	)
 {
 	this->sendChar = sendChar;
 	this->recvChar = recvChar;
-	this->dataHandler = dataHandler;
-	
+	this->tDataHandler = tDataHandler;
+	this->rDataHandler = rDataHandler;
 }
 
 bool XModem::dataAvail(int delay)
@@ -42,7 +44,7 @@ bool XModem::dataAvail(int delay)
 		return true;
 	else
 		return false;
-		
+
 }
 int XModem::dataRead(int delay)
 {
@@ -61,17 +63,17 @@ void XModem::dataWrite(char symbol)
 }
 bool XModem::receiveFrameNo()
 {
-	unsigned char num = 
+	unsigned char num =
 		(unsigned char)this->dataRead(XModem::receiveDelay);
-	unsigned char invnum = 
+	unsigned char invnum =
 		(unsigned char)this-> dataRead(XModem::receiveDelay);
 	this->repeatedBlock = false;
 	//check for repeated block
 	if (invnum == (255-num) && num == this->blockNo-1) {
 		this->repeatedBlock = true;
-		return true;	
+		return true;
 	}
-	
+
 	if(num != this-> blockNo || invnum != (255-num))
 		return false;
 	else
@@ -86,22 +88,22 @@ bool XModem::receiveData()
 		else
 			return false;
 	}
-	return true;	
+	return true;
 }
 bool XModem::checkCrc()
 {
 	unsigned short frame_crc = ((unsigned char)this->
 				dataRead(XModem::receiveDelay)) << 8;
-	
+
 	frame_crc |= (unsigned char)this->dataRead(XModem::receiveDelay);
 	//now calculate crc on data
 	unsigned short crc = this->crc16_ccitt(this->buffer, 128);
-	
+
 	if(frame_crc != crc)
 		return false;
 	else
 		return true;
-	
+
 }
 bool XModem::checkChkSum()
 {
@@ -119,13 +121,13 @@ bool XModem::checkChkSum()
 }
 bool XModem::sendNack()
 {
-	this->dataWrite(XModem::NACK);	
+	this->dataWrite(XModem::NACK);
 	this->retries++;
 	if(this->retries < XModem::rcvRetryLimit)
 		return true;
 	else
 		return false;
-	
+
 }
 bool XModem::receiveFrames(transfer_t transfer)
 {
@@ -142,12 +144,12 @@ bool XModem::receiveFrames(transfer_t transfer)
 					else
 						return false;
 				}
-				if (!this->receiveData()) {	
+				if (!this->receiveData()) {
 					if (this->sendNack())
 						break;
 					else
 						return false;
-					
+
 				};
 				if (transfer == Crc) {
 					if (!this->checkCrc()) {
@@ -165,9 +167,9 @@ bool XModem::receiveFrames(transfer_t transfer)
 					}
 				}
 				//callback
-				if(this->dataHandler != NULL && 
+				if(this->dataHandler != NULL &&
 				   this->repeatedBlock == false)
-					if(!this->dataHandler(this->blockNoExt, 
+					if(!this->dataHandler(this->blockNoExt,
 							  this->buffer, 128)) {
 						return false;
 					}
@@ -178,7 +180,7 @@ bool XModem::receiveFrames(transfer_t transfer)
 					this->blockNo++;
 					this->blockNoExt++;
 				}
-			   	
+
 				break;
 			case XModem::EOT:
 				this->dataWrite(XModem::ACK);
@@ -203,29 +205,30 @@ bool XModem::receiveFrames(transfer_t transfer)
 				this->dataWrite(XModem::CAN);
 				return false;
 		}
-		
+
 	}
 }
 void XModem::init()
 {
-	//set preread byte  	
+	//set preread byte
 	this->byte = -1;
 }
 bool XModem::receive()
 {
+	dataHandler = rDataHandler;
 	this->init();
-	
+
 	for (int i =0; i <  16; i++)
 	{
-		this->dataWrite('C');	
-		if (this->dataAvail(1000)) 
+		this->dataWrite('C');
+		if (this->dataAvail(1000))
 			return receiveFrames(Crc);
-	
+
 	}
 	for (int i =0; i <  16; i++)
 	{
-		this->dataWrite(XModem::NACK);	
-		if (this->dataAvail(1000)) 
+		this->dataWrite(XModem::NACK);
+		if (this->dataAvail(1000))
 			return receiveFrames(ChkSum);
 	}
 
@@ -252,7 +255,7 @@ unsigned char XModem::generateChkSum(void)
 		chksum += this->buffer[i];
 	}
 	return chksum;
-	
+
 }
 
 bool XModem::transmitFrames(transfer_t transfer)
@@ -266,21 +269,21 @@ bool XModem::transmitFrames(transfer_t transfer)
 		//get data
 		if (this->dataHandler != NULL)
 		{
-			if( false == 
-			    this->dataHandler(this->blockNoExt, this->buffer, 
+			if( false ==
+			    this->dataHandler(this->blockNoExt, this->buffer,
 			    128))
 			{
 				//end of transfer
 				this->sendChar(XModem::EOT);
 				//wait ACK
-				if (this->dataRead(XModem::receiveDelay) == 
+				if (this->dataRead(XModem::receiveDelay) ==
 					XModem::ACK)
 					return true;
 				else
 					return false;
 
-			}			
-			
+			}
+
 		}
 		else
 		{
@@ -288,7 +291,7 @@ bool XModem::transmitFrames(transfer_t transfer)
 			this->sendChar(XModem::CAN);
 			this->sendChar(XModem::CAN);
 			//wait ACK
-			if (this->dataRead(XModem::receiveDelay) == 
+			if (this->dataRead(XModem::receiveDelay) ==
 				XModem::ACK)
 				return true;
 			else
@@ -296,7 +299,7 @@ bool XModem::transmitFrames(transfer_t transfer)
 		}
 		//send SOH
 		this->sendChar(XModem::SOH);
-		//send frame number	
+		//send frame number
 		this->sendChar(this->blockNo);
 		//send inv frame number
 		this->sendChar((unsigned char)(255-(this->blockNo)));
@@ -309,10 +312,10 @@ bool XModem::transmitFrames(transfer_t transfer)
 		} else {
 			unsigned short crc;
 			crc = this->crc16_ccitt(this->buffer, 128);
-			
+
 			this->sendChar((unsigned char)(crc >> 8));
 			this->sendChar((unsigned char)(crc));
-			 
+
 		}
 		//TO DO - wait NACK or CAN or ACK
 		int ret = this->dataRead(XModem::receiveDelay);
@@ -328,28 +331,29 @@ bool XModem::transmitFrames(transfer_t transfer)
 				return false;
 
 		}
-	
+
 	}
 	return false;
 }
 bool XModem::transmit()
 {
+	dataHandler = tDataHandler;
 	int retry = 0;
 	int sym;
 	this->init();
-	
+
 	//wait for CRC transfer
 	while(retry < 32)
 	{
 		if(this->dataAvail(1000))
 		{
 			sym = this->dataRead(1); //data is here - no delay
-			if(sym == 'C')	
+			if(sym == 'C')
 				return this->transmitFrames(Crc);
 			if(sym == XModem::NACK)
 				return this->transmitFrames(ChkSum);
 		}
 		retry++;
-	}	
+	}
 	return false;
 }

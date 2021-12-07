@@ -1,6 +1,6 @@
 typedef enum {
 	Crc,
-	ChkSum	
+	ChkSum
 } transfer_t;
 
 
@@ -25,6 +25,8 @@ class XModem {
 
 		int  (*recvChar)(int);
 		void (*sendChar)(char);
+		bool (*rDataHandler)(unsigned long number, char *buffer, int len);
+		bool (*tDataHandler)(unsigned long number, char *buffer, int len);
 		bool (*dataHandler)(unsigned long number, char *buffer, int len);
 		unsigned short crc16_ccitt(char *buf, int size);
 		bool dataAvail(int delay);
@@ -37,23 +39,25 @@ class XModem {
 		bool receiveFrames(transfer_t transfer);
 		bool sendNack(void);
 		void init(void);
-		
+
 		bool transmitFrames(transfer_t);
 		unsigned char generateChkSum(void);
-		
+
 	public:
 		static const unsigned char NACK;
 		static const unsigned char ACK;
 		static const unsigned char SOH;
 		static const unsigned char EOT;
 		static const unsigned char CAN;
-	
+
 		XModem(int (*recvChar)(int), void (*sendChar)(char));
-		XModem(int (*recvChar)(int), void (*sendChar)(char), 
-  			        bool (*dataHandler)(unsigned long, char*, int));
+		XModem(int (*recvChar)(int), void (*sendChar)(char),
+  			        bool (*rDataHandler)(unsigned long, char*, int)
+								bool (*tDataHandler)(unsigned long, char*, int)
+							);
 		bool receive();
 		bool transmit();
-		
-	
-		
+
+
+
 };
