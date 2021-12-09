@@ -1,11 +1,23 @@
 #ifndef XMODEM_H
 	#define XMODEM_H
+	#include <Arduino>
+
 	typedef enum {
 		Crc,
 		ChkSum
 	} transfer_t;
 
-
+	class XModemHardwareInterface {
+		virtual int recvChar(int) = 0;
+		virtual void sendChar(char) = 0;
+		virtual bool rDataHandler(unsigned long , char *, int ) = 0;
+		virtual bool tDataHandler(unsigned long , char *, int ) = 0;
+	};
+	/*
+	class XModemArduinoInterface : public XModemHardwareInterface {
+		int recvChar
+	};
+	*/
 	class XModem {
 		private:
 			//delay when receive bytes in frame - 7 secs
@@ -24,12 +36,15 @@
 			char buffer[128];
 			//repeated block flag
 			bool repeatedBlock;
-
+			// Declare Call Back Object
+			XModemHardwareInterface* hardware;
+			/* - Previous Call Back Functions
 			int  (*recvChar)(int);
 			void (*sendChar)(char);
 			bool (*rDataHandler)(unsigned long number, char *buffer, int len);
 			bool (*tDataHandler)(unsigned long number, char *buffer, int len);
 			bool (*dataHandler)(unsigned long number, char *buffer, int len);
+			*/
 			unsigned short crc16_ccitt(char *buf, int size);
 			bool dataAvail(int delay);
 			int dataRead(int delay);
