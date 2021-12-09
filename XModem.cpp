@@ -16,14 +16,21 @@ const int XModem::receiveDelay=7000;
 const int XModem::rcvRetryLimit = 10;
 
 
+XModem::XModem()
+{
+	this->sendChar = NULL;
+	this->recvChar = NULL;
+	this->tDataHandler = NULL;
+	this->rDataHandler = NULL;
+}
 
 
 XModem::XModem(int (*recvChar)(int msDelay), void (*sendChar)(char sym))
 {
 	this->sendChar = sendChar;
 	this->recvChar = recvChar;
-	this->dataHandler = NULL;
-
+	this->tDataHandler = NULL;
+	this->rDataHandler = rDataHandler;
 }
 XModem::XModem(int (*recvChar)(int msDelay), void (*sendChar)(char sym),
 		bool (*rDataHandler)(unsigned long number, char *buffer, int len),
@@ -356,4 +363,15 @@ bool XModem::transmit()
 		retry++;
 	}
 	return false;
+}
+
+void XModem::assignFunctions(int (*recvChar)(int msDelay), void (*sendChar)(char sym),
+		bool (*rDataHandler)(unsigned long number, char *buffer, int len),
+		bool (*tDataHandler)(unsigned long number, char *buffer, int len)
+	)
+{
+	this->sendChar = sendChar;
+	this->recvChar = recvChar;
+	this->tDataHandler = tDataHandler;
+	this->rDataHandler = rDataHandler;
 }
