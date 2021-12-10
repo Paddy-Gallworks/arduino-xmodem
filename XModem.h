@@ -1,6 +1,5 @@
 #ifndef XMODEM_H
 	#define XMODEM_H
-	#include <Arduino>
 
 	typedef enum {
 		Crc,
@@ -13,11 +12,6 @@
 		virtual bool rDataHandler(unsigned long , char *, int ) = 0;
 		virtual bool tDataHandler(unsigned long , char *, int ) = 0;
 	};
-	/*
-	class XModemArduinoInterface : public XModemHardwareInterface {
-		int recvChar
-	};
-	*/
 	class XModem {
 		private:
 			//delay when receive bytes in frame - 7 secs
@@ -38,13 +32,6 @@
 			bool repeatedBlock;
 			// Declare Call Back Object
 			XModemHardwareInterface* hardware;
-			/* - Previous Call Back Functions
-			int  (*recvChar)(int);
-			void (*sendChar)(char);
-			bool (*rDataHandler)(unsigned long number, char *buffer, int len);
-			bool (*tDataHandler)(unsigned long number, char *buffer, int len);
-			bool (*dataHandler)(unsigned long number, char *buffer, int len);
-			*/
 			unsigned short crc16_ccitt(char *buf, int size);
 			bool dataAvail(int delay);
 			int dataRead(int delay);
@@ -55,8 +42,8 @@
 			bool checkChkSum(void);
 			bool receiveFrames(transfer_t transfer);
 			bool sendNack(void);
-			void init(void);
 
+			void init(void);
 			bool transmitFrames(transfer_t);
 			unsigned char generateChkSum(void);
 
@@ -68,14 +55,7 @@
 			static const unsigned char CAN;
 
 			XModem(); //Blank!
-			XModem(int (*recvChar)(int), void (*sendChar)(char));
-			XModem(int (*recvChar)(int), void (*sendChar)(char),
-	  			        bool (*rDataHandler)(unsigned long, char*, int),
-									bool (*tDataHandler)(unsigned long, char*, int)
-								);
-			void assignFunctions(int (*recvChar)(int), void (*sendChar)(char),
-	  			        bool (*rDataHandler)(unsigned long, char*, int),
-									bool (*tDataHandler)(unsigned long, char*, int));
+			void begin(XModemHardwareInterface*);
 			bool receive();
 			bool transmit();
 
