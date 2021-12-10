@@ -7,6 +7,7 @@
 	} transfer_t;
 
 	class XModemHardwareInterface {
+	public:
 		virtual int recvChar(int) = 0;
 		virtual void sendChar(char) = 0;
 		virtual bool rDataHandler(unsigned long , char *, int ) = 0;
@@ -62,4 +63,5 @@
 
 
 	};
+	#include "XModem.cpp"
 #endif //XMODEM_H

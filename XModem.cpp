@@ -152,7 +152,7 @@ bool XModem::receiveFrames(transfer_t transfer)
 					}
 				}
 				//callback
-				if(this->hardware->rDataHandler != NULL &&
+				if(this->hardware != NULL &&
 				   this->repeatedBlock == false)
 					if(!this->hardware->rDataHandler(this->blockNoExt,
 							  this->buffer, 128)) {
@@ -254,7 +254,7 @@ bool XModem::transmitFrames(transfer_t transfer)
 	while(1)
 	{
 		//get data
-		if (this->hardware->tDataHandler != NULL)
+		if (this->hardware != NULL)
 		{
 			if( false ==
 			    this->hardware->tDataHandler(this->blockNoExt, this->buffer,
