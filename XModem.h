@@ -63,5 +63,4 @@
 
 
 	};
-	#include "XModem.cpp"
 #endif //XMODEM_H

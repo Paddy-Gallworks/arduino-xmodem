@@ -215,10 +215,11 @@ bool XModem::receive()
 	for (int i =0; i <  16; i++)
 	{
 		this->dataWrite(XModem::NACK);
-		if (this->dataAvail(1000))
+		if (this->dataAvail(1000)) {
 			return receiveFrames(ChkSum);
+		}
 	}
-
+	return false;
 }
 unsigned short XModem::crc16_ccitt(char *buf, int size)
 {
