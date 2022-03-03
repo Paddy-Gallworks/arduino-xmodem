@@ -120,7 +120,7 @@ bool XModem::receiveFrames(transfer_t transfer)
 	this->blockNoExt = 1;
 	this->retries = 0;
 	while (1) {
-		char cmd = this->dataRead(100);
+		char cmd = this->dataRead(2000);
 		switch(cmd){
 			case XModem::SOH:
 				if (!this->receiveFrameNo()) {
