@@ -1,7 +1,7 @@
-//#include <stdio.h>
-#include <string.h>
 
 #include "XModem.h"
+#include <string.h>
+
 #ifdef UTEST
 #include "CppUTestExt/MockSupport.h"
 #endif

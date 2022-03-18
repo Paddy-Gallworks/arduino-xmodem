@@ -59,8 +59,6 @@
 			void begin(XModemHardwareInterface*);
 			bool receive();
 			bool transmit();
-
-
-
 	};
+	#include "XModem.cpp"
 #endif //XMODEM_H
