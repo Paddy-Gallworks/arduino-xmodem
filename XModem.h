@@ -60,5 +60,7 @@
 			bool receive();
 			bool transmit();
 	};
-	#include "XModem.cpp"
+	#ifdef ARDUINO_MODE
+		#include "XModem.cpp"
+	#endif //ARDUINO_MODE
 #endif //XMODEM_H
