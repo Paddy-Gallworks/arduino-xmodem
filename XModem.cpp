@@ -12,7 +12,7 @@ const unsigned char XModem::SOH =  1;
 const unsigned char XModem::EOT =  4;
 const unsigned char XModem::CAN =  0x18;
 
-const int XModem::receiveDelay=7000;
+const int XModem::receiveDelay=10000;
 const int XModem::rcvRetryLimit = 10;
 
 
